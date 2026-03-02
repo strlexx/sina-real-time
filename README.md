@@ -35,16 +35,16 @@ cd sina-collector
 cargo build --release
 
 # 样本测试（12 只）
-./target/release/sina-collector
+./target/release/sina-realtime-collector
 
 # 100 只
-./target/release/sina-collector --stocks stocks_100.txt --output data
+./target/release/sina-realtime-collector --stocks stocks_100.txt --output data
 
 # 1000 只
-./target/release/sina-collector --stocks stocks_1000.txt --output data
+./target/release/sina-realtime-collector --stocks stocks_1000.txt --output data
 
 # 全量沪深 A 股（5189 只，11 个并行连接）
-./target/release/sina-collector --stocks stocks_all.txt --output data
+./target/release/sina-realtime-collector --stocks stocks_all.txt --output data
 ```
 
 ## 更新股票列表
@@ -86,8 +86,8 @@ Options:
 ## 日志级别
 
 ```bash
-RUST_LOG=debug ./target/release/sina-collector --stocks stocks_all.txt --output data --chunk-size 200  # 详细日志
-RUST_LOG=warn  ./target/release/sina-collector   # 仅告警
+RUST_LOG=debug ./target/release/sina-realtime-collector --stocks stocks_all.txt --output data --chunk-size 200  # 详细日志
+RUST_LOG=warn  ./target/release/sina-realtime-collector   # 仅告警
 ```
 
 ## 后续扩展
